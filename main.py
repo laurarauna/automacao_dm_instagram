@@ -65,13 +65,17 @@ def webhook():
 
 def send_dm(user_id, message):
     token = os.environ.get("META_TOKEN")
-    # A URL oficial para Instagram Messaging
-    url = f"https://graph.facebook.com/v19.0/me/messages?access_token={token}"
+    # Substituímos 'me' pelo seu ID real: 17841433439787020
+    instagram_account_id = "17841433439787020"
+    url = f"https://graph.facebook.com/v19.0/{instagram_account_id}/messages?access_token={token}"
     
     payload = {
         "recipient": {"id": user_id},
         "message": {"text": message}
     }
+    
+    response = requests.post(url, json=payload)
+    print(f" Resposta da Meta ao enviar DM: {response.status_code} - {response.text}", flush=True)
     
     response = requests.post(url, json=payload)
     print(f" Resposta da Meta ao enviar DM: {response.status_code} - {response.text}", flush=True)
