@@ -40,24 +40,38 @@ def webhook():
             if change['field'] == 'comments':
                 val = change['value']
                 text = val.get('text', '').lower()
-                comment_id = val.get('id') # ID DO COMENTÁRIO
+                user_id = val.get('from', {}).get('id')
+                user_name = val.get('from', {}).get('username')
                 post_id = val.get('media', {}).get('id')
                 
+                # Ignorar se o comentário for da própria conta
+                if user_name == "casa__curadoria":
+                    continue
+
                 if "quero" in text:
                     resposta = get_link_from_sheet(post_id)
                     if resposta:
-                        print(f" Respondendo ao comentário {comment_id}...", flush=True)
-                        send_private_reply(comment_id, resposta)
+                        print(f" Comentário de {user_name} detectado. Enviando link...", flush=True)
+                        send_instagram_dm(user_id, resposta)
     return "OK", 200
 
-def send_private_reply(comment_id, message):
-    token = os.environ.get("META_TOKEN")
-    # Este endpoint 'private_replies' é o segredo para evitar o erro #3
-    url = f"https://graph.facebook.com/v19.0/{comment_id}/private_replies?access_token={token}"
+def send_instagram_dm(recipient_id, message_text):
+    token = os.environ.get("META_TOKEN") # O TOKEN IGAA... QUE VOCÊ JÁ TEM
+    # USANDO O ENDPOINT QUE FUNCIONOU NO SEU CURL
+    url = f"https://graph.instagram.com/v25.0/me/messages"
     
-    payload = {"message": message}
-    response = requests.post(url, json=payload)
-    print(f" Resposta da Meta: {response.status_code} - {response.text}", flush=True)
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "recipient": {"id": recipient_id},
+        "message": {"text": message_text}
+    }
+    
+    response = requests.post(url, json=payload, headers=headers)
+    print(f" Resultado da DM: {response.status_code} - {response.text}", flush=True)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
