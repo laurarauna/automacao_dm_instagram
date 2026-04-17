@@ -40,7 +40,6 @@ def verify():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
-    # Este print é vital: ele mostra tudo o que o Instagram enviou
     print(f" Dados recebidos do Instagram: {json.dumps(data)}", flush=True)
 
     for entry in data.get('entry', []):
@@ -65,7 +64,7 @@ def webhook():
 
 def send_dm(user_id, message):
     token = os.environ.get("META_TOKEN")
-    # Substituímos 'me' pelo seu ID real: 17841433439787020
+    # ID real da Casa Curadoria extraído do depurador
     instagram_account_id = "17841433439787020"
     url = f"https://graph.facebook.com/v19.0/{instagram_account_id}/messages?access_token={token}"
     
@@ -76,10 +75,6 @@ def send_dm(user_id, message):
     
     response = requests.post(url, json=payload)
     print(f" Resposta da Meta ao enviar DM: {response.status_code} - {response.text}", flush=True)
-    
-    response = requests.post(url, json=payload)
-    print(f" Resposta da Meta ao enviar DM: {response.status_code} - {response.text}", flush=True)
 
 if __name__ == "__main__":
-    # Garante que o log apareça imediatamente
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
