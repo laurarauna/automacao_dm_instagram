@@ -2,6 +2,8 @@
 
 Este repositório contém o código-fonte de uma automação *Server-to-Server* desenvolvida para a conta comercial do Instagram **@casa__curadoria**. O objetivo da aplicação é converter o engajamento público (comentários) em interações privadas e conversões, enviando links de produtos (ex: afiliados Shopee) automaticamente via Direct Message (DM) quando um seguidor comenta uma palavra-chave específica.
 
+Construção de pipeline de ingestão de dados em tempo real consumindo a Meta Graph API. Arquitetura Server-to-Server com deploy em nuvem (Render).
+
 ## ⚙️ Arquitetura e Tecnologias
 
 O projeto foi construído sem interface gráfica (*Front-end*), rodando 100% no *Back-end*, utilizando as seguintes ferramentas:
