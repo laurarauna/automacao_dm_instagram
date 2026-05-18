@@ -4,6 +4,7 @@ Este repositório contém o código-fonte de uma automação *Server-to-Server* 
 
 Construção de pipeline de ingestão de dados em tempo real consumindo a Meta Graph API. Arquitetura Server-to-Server com deploy em nuvem (Render).
 
+
 ## ⚙️ Arquitetura e Tecnologias
 
 O projeto foi construído sem interface gráfica (*Front-end*), rodando 100% no *Back-end*, utilizando as seguintes ferramentas:
@@ -44,6 +45,12 @@ Para rodar este projeto localmente ou em um novo servidor, é necessário config
 * `GOOGLE_SHEETS_CREDENTIALS`: JSON com as credenciais da API do Google Cloud.
 * `SPREADSHEET_ID`: O ID da planilha do Google usada como banco de dados.
 
+## 🎥 Demonstração do Projeto
+
+Clique na imagem abaixo para ver o vídeo a demonstrar a arquitetura Server-to-Server a funcionar em tempo real, desde o webhook até à entrega da mensagem no Instagram:
+
+[![Demonstração da Automação](https://img.youtube.com/vi/OATuXX8J230/0.jpg)](https://www.youtube.com/watch?v=OATuXX8J230)
+
 ## 📌 Observações Finais
 
-Este projeto automatiza a entrega de valor aos seguidores, diminuindo o atrito na jornada de compra e garantindo que o usuário receba a informação solicitada de forma instantânea e segura, respeitando as políticas de privacidade e consentimento da plataforma.
+Este projeto automatiza a entrega de valor aos seguidores, reduzindo o atrito na jornada de compra e garantindo que o usuário receba a informação solicitada de forma instantânea e segura, respeitando as políticas de privacidade e consentimento da plataforma.
