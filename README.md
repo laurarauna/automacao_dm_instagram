@@ -1,4 +1,4 @@
-# 🤖 Automação de DM no Instagram | Casa Curadoria
+# Automação de DM no Instagram
 
 Este repositório contém o código-fonte de uma automação *Server-to-Server* desenvolvida para a conta comercial do Instagram **@casa__curadoria**. O objetivo da aplicação é converter o engajamento público (comentários) em interações privadas e conversões, enviando links de produtos (ex: afiliados Shopee) automaticamente via Direct Message (DM) quando um seguidor comenta uma palavra-chave específica.
 
