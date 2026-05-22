@@ -1,56 +1,55 @@
-# Automação de DM no Instagram
+# Instagram DM Automation
 
-Este repositório contém o código-fonte de uma automação *Server-to-Server* desenvolvida para a conta comercial do Instagram **@casa__curadoria**. O objetivo da aplicação é converter o engajamento público (comentários) em interações privadas e conversões, enviando links de produtos (ex: afiliados Shopee) automaticamente via Direct Message (DM) quando um seguidor comenta uma palavra-chave específica.
+This repository contains the source code for a *Server-to-Server* automation developed for the Instagram business account **@casa__curadoria**. The application's goal is to convert public engagement (comments) into private interactions and conversions by automatically sending product links (e.g., Shopee affiliates) via Direct Message (DM) when a follower comments a specific keyword.
 
-Construção de pipeline de ingestão de dados em tempo real consumindo a Meta Graph API. Arquitetura Server-to-Server com deploy em nuvem (Render).
+Real-time data ingestion pipeline construction consuming the Meta Graph API. Server-to-Server architecture deployed in the cloud (Render).
 
+## ⚙️ Architecture and Technologies
 
-## ⚙️ Arquitetura e Tecnologias
+The project was built without a graphical interface (*Front-end*), running 100% on the *Back-end*, using the following tools:
 
-O projeto foi construído sem interface gráfica (*Front-end*), rodando 100% no *Back-end*, utilizando as seguintes ferramentas:
+* **Hosting:** [Render.com](https://render.com/) (PaaS)
+* **Database/Configuration:** Google Sheets API
+* **Integration:** Meta Graph API (Instagram Webhooks)
+* **Language/Environment:** Python
 
-* **Hospedagem:** [Render.com](https://render.com/) (PaaS)
-* **Banco de Dados/Configuração:** Google Sheets API
-* **Integração:** Meta Graph API (Instagram Webhooks)
-* **Linguagem/Ambiente:** Python
+## 🔄 Workflow (How it works)
 
-## 🔄 Fluxo de Funcionamento (Como funciona)
+The entire process is automated and occurs in a matter of seconds:
 
-O processo inteiro é automatizado e ocorre em questão de segundos:
+1.  **The Trigger (Consent):** The page publishes a "finds" post and asks in the caption for the follower to comment a keyword (e.g., *"WANT"*).
+2.  **The Webhook:** The user comments on the post. The Meta Graph API detects the interaction and triggers an event (Webhook) containing the comment's *payload* to our server hosted on Render.
+3.  **Processing and Validation:** The server receives the Webhook and verifies:
+    * If the event occurred on the correct account (`instagram_business_basic`).
+    * If the comment text contains the exact trigger keyword (`instagram_business_manage_comments`).
+4.  **Database Query:** The code connects to a Google Sheets spreadsheet. The spreadsheet works as a control panel containing: `Post Link` | `Keyword` | `Message to send` | `Product Link (Shopee)`.
+5.  **The Action (DM Dispatch):** Once the data matches, the server makes a POST request to the Meta Graph API, sending the message and the link privately to the user's inbox (`instagram_business_manage_messages`).
 
-1.  **O Gatilho (Consentimento):** A página publica um post de "achadinhos" e pede na legenda para o seguidor comentar uma palavra-chave (ex: *"QUERO"*).
-2.  **O Webhook:** O usuário comenta no post. A Meta Graph API detecta a interação e dispara um evento (Webhook) contendo o *payload* do comentário para o nosso servidor hospedado no Render.
-3.  **Processamento e Validação:** O servidor recebe o Webhook e verifica:
-    * Se o evento ocorreu na conta correta (`instagram_business_basic`).
-    * Se o texto do comentário contém a palavra de gatilho exata (`instagram_business_manage_comments`).
-4.  **Consulta de Banco de Dados:** O código se conecta a uma planilha do Google Sheets. A planilha funciona como um painel de controle contendo: `Link do Post` | `Palavra-chave` | `Mensagem a ser enviada` | `Link do Produto (Shopee)`.
-5.  **A Ação (Envio da DM):** Uma vez que os dados batem, o servidor faz uma requisição POST para a Meta Graph API, enviando a mensagem e o link de forma privada para a caixa de entrada do usuário (`instagram_business_manage_messages`).
+## 🔐 Meta App Permissions
 
-## 🔐 Permissões da Meta App
+For the bot to work, the application in the Meta Developer Dashboard requires the **Advanced Access** level for the following permissions:
 
-Para que o robô funcione, o aplicativo no Painel de Desenvolvedor da Meta requer o nível de **Acesso Avançado** nas seguintes permissões:
+* `instagram_business_basic`: To read profile metadata and validate the comment's origin.
+* `instagram_business_manage_comments`: To passively listen to Webhooks and identify the keyword.
+* `instagram_business_manage_messages`: To execute the automated DM dispatch.
 
-* `instagram_business_basic`: Para ler os metadados do perfil e validar a origem do comentário.
-* `instagram_business_manage_comments`: Para escutar passivamente os Webhooks e identificar a palavra-chave.
-* `instagram_business_manage_messages`: Para executar o disparo automatizado da DM.
+> **Note on Meta's review:** Since this is a *Server-to-Server* application, the authentication flow does not use login screens (*Facebook Login*). Authorization is done via **System User Access Tokens** generated in the Business Manager and configured in the server's environment variables.
 
-> **Nota sobre a revisão da Meta:** Como este é um aplicativo *Server-to-Server*, o fluxo de autenticação não utiliza telas de login (*Facebook Login*). A autorização é feita via **Tokens de Acesso de Usuário do Sistema** gerados no Gerenciador de Negócios e configurados nas variáveis de ambiente do servidor.
+## 🚀 Environment Setup
 
-## 🚀 Configuração do Ambiente
+To run this project locally or on a new server, the following environment variables (`.env`) must be configured:
 
-Para rodar este projeto localmente ou em um novo servidor, é necessário configurar as seguintes variáveis de ambiente (`.env`):
+* `VERIFY_TOKEN`: Security token for Webhook validation on Meta.
+* `PAGE_ACCESS_TOKEN` or `SYSTEM_USER_TOKEN`: Access token with permission to manage the linked Instagram account.
+* `GOOGLE_SHEETS_CREDENTIALS`: JSON containing the Google Cloud API credentials.
+* `SPREADSHEET_ID`: The ID of the Google Sheets spreadsheet used as a database.
 
-* `VERIFY_TOKEN`: Token de segurança para validação do Webhook na Meta.
-* `PAGE_ACCESS_TOKEN` ou `SYSTEM_USER_TOKEN`: Token de acesso com permissão para gerenciar a conta do Instagram vinculada.
-* `GOOGLE_SHEETS_CREDENTIALS`: JSON com as credenciais da API do Google Cloud.
-* `SPREADSHEET_ID`: O ID da planilha do Google usada como banco de dados.
+## 🎥 Project Demonstration
 
-## 🎥 Demonstração do Projeto
+Click the image below to watch the video demonstrating the Server-to-Server architecture working in real-time, from the webhook to the message delivery on Instagram:
 
-Clique na imagem abaixo para ver o vídeo a demonstrar a arquitetura Server-to-Server a funcionar em tempo real, desde o webhook até à entrega da mensagem no Instagram:
+[![Automation Demonstration](https://img.youtube.com/vi/OATuXX8J230/0.jpg)](https://www.youtube.com/watch?v=OATuXX8J230)
 
-[![Demonstração da Automação](https://img.youtube.com/vi/OATuXX8J230/0.jpg)](https://www.youtube.com/watch?v=OATuXX8J230)
+## 📌 Final Remarks
 
-## 📌 Observações Finais
-
-Este projeto automatiza a entrega de valor aos seguidores, reduzindo o atrito na jornada de compra e garantindo que o usuário receba a informação solicitada de forma instantânea e segura, respeitando as políticas de privacidade e consentimento da plataforma.
+This project automates the delivery of value to followers, reducing friction in the purchasing journey and ensuring the user receives the requested information instantly and securely, respecting the platform's privacy and consent policies.
