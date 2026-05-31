@@ -1,6 +1,7 @@
 import os
 import json
 import gspread
+import random 
 from flask import Flask, request
 from oauth2client.service_account import ServiceAccountCredentials
 import requests
@@ -60,12 +61,15 @@ def webhook():
                 if palavra_esperada and palavra_esperada in text:
                     print(f" Gatilho '{palavra_esperada}' detectado de {user_name}. Enviando link...", flush=True)
                     send_instagram_dm(comment_id, resposta) 
+                    
+                    # <-- NOVA FUNÇÃO: Responde o comentário publicamente no post
+                    reply_to_comment(comment_id, user_name) 
+                    
                 elif palavra_esperada:
                     print(f" Comentário ignorado. O gatilho para este post é '{palavra_esperada}', mas o usuário digitou '{text}'.", flush=True)
 
     return "OK", 200
 
-# CORREÇÃO FEITA AQUI NESTA FUNÇÃO:
 def send_instagram_dm(comment_id, message_text):
     token = os.environ.get("META_TOKEN") 
     url = f"https://graph.instagram.com/v25.0/me/messages"
@@ -76,12 +80,42 @@ def send_instagram_dm(comment_id, message_text):
     }
     
     payload = {
-        "recipient": {"comment_id": comment_id}, # CHAVE CORRETA PARA RESPONDER A COMENTÁRIOS
+        "recipient": {"comment_id": comment_id}, 
         "message": {"text": message_text}
     }
     
     response = requests.post(url, json=payload, headers=headers)
     print(f" Resultado da DM: {response.status_code} - {response.text}", flush=True)
+
+# <-- NOVA FUNÇÃO ADICIONADA AQUI:
+def reply_to_comment(comment_id, username):
+    token = os.environ.get("META_TOKEN") 
+    # O endpoint oficial da Meta para responder a comentários usa o graph.facebook.com
+    url = f"https://graph.facebook.com/v20.0/{comment_id}/replies"
+    
+    # Você pode editar, adicionar ou remover frases desta lista à vontade!
+    lista_de_respostas = [
+        f"Oii, @{username}! Já te chamei no direct com o link, verifica se chegou! ✨",
+        f"Oie, @{username}! Tudo bem? Te mandei no direct, veja se chegou certinho",
+        f"Oi, @{username}! Enviei na sua DM ✨",
+        f"Prontinho @{username} 🧡! Veja se chegou certinho na sua DM",
+        f"@{username}, mandei no seu direct! Veja se chegou pra você"
+    ]
+    
+    # O comando abaixo escolhe uma resposta aleatória da lista
+    mensagem_sorteada = random.choice(lista_de_respostas)
+    
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "message": mensagem_sorteada
+    }
+    
+    response = requests.post(url, json=payload, headers=headers)
+    print(f" Resultado da Resposta no Post: {response.status_code} - {response.text}", flush=True)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
