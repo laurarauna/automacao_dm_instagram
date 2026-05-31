@@ -1,7 +1,7 @@
 import os
 import json
 import gspread
-import random 
+import random
 from flask import Flask, request
 from oauth2client.service_account import ServiceAccountCredentials
 import requests
@@ -19,12 +19,10 @@ def get_link_from_sheet(post_id):
         print(f" Procurando ID {post_id} na planilha...", flush=True)
         cell = sheet.find(str(post_id))
         
-        # Agora o robô lê a Coluna B (2) para pegar a palavra-chave também
         palavra_chave = sheet.cell(cell.row, 2).value.lower() 
-        link = sheet.cell(cell.row, 3).value # Coluna C
-        msg = sheet.cell(cell.row, 4).value  # Coluna D
+        link = sheet.cell(cell.row, 3).value 
+        msg = sheet.cell(cell.row, 4).value  
         
-        # Retorna a palavra-chave esperada E a mensagem final
         return palavra_chave, f"{msg} {link}"
     except Exception as e:
         print(f" Erro ao ler planilha (ou Post não cadastrado): {e}", flush=True)
@@ -54,15 +52,13 @@ def webhook():
                 if user_name == "casa__curadoria":
                     continue
 
-                # 1. Primeiro vai na planilha e puxa os dados do Post
                 palavra_esperada, resposta = get_link_from_sheet(post_id)
 
-                # 2. Verifica se encontrou o post e se a palavra da planilha está no comentário
                 if palavra_esperada and palavra_esperada in text:
                     print(f" Gatilho '{palavra_esperada}' detectado de {user_name}. Enviando link...", flush=True)
                     send_instagram_dm(comment_id, resposta) 
                     
-                    # <-- NOVA FUNÇÃO: Responde o comentário publicamente no post
+                    # Responde o comentário publicamente no post
                     reply_to_comment(comment_id, user_name) 
                     
                 elif palavra_esperada:
@@ -87,13 +83,11 @@ def send_instagram_dm(comment_id, message_text):
     response = requests.post(url, json=payload, headers=headers)
     print(f" Resultado da DM: {response.status_code} - {response.text}", flush=True)
 
-# <-- NOVA FUNÇÃO ADICIONADA AQUI:
 def reply_to_comment(comment_id, username):
     token = os.environ.get("META_TOKEN") 
-    # O endpoint oficial da Meta para responder a comentários usa o graph.facebook.com
     url = f"https://graph.facebook.com/v20.0/{comment_id}/replies"
     
-    # Você pode editar, adicionar ou remover frases desta lista à vontade!
+    # SUA LISTA DE RESPOSTAS PERSONALIZADAS:
     lista_de_respostas = [
         f"Oii, @{username}! Já te chamei no direct com o link, verifica se chegou! ✨",
         f"Oie, @{username}! Tudo bem? Te mandei no direct, veja se chegou certinho",
@@ -102,7 +96,6 @@ def reply_to_comment(comment_id, username):
         f"@{username}, mandei no seu direct! Veja se chegou pra você"
     ]
     
-    # O comando abaixo escolhe uma resposta aleatória da lista
     mensagem_sorteada = random.choice(lista_de_respostas)
     
     headers = {
