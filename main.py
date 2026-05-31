@@ -85,9 +85,9 @@ def send_instagram_dm(comment_id, message_text):
 
 def reply_to_comment(comment_id, username):
     token = os.environ.get("META_TOKEN") 
-    url = f"https://graph.facebook.com/v20.0/{comment_id}/replies"
+    url = f"https://graph.instagram.com/v25.0/{comment_id}/replies"
     
-    # SUA LISTA DE RESPOSTAS PERSONALIZADAS:
+    # LISTA DE RESPOSTAS PERSONALIZADAS:
     lista_de_respostas = [
         f"Oii, @{username}! Já te chamei no direct com o link, verifica se chegou! ✨",
         f"Oie, @{username}! Tudo bem? Te mandei no direct, veja se chegou certinho",
