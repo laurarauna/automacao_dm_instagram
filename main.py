@@ -14,6 +14,8 @@ def get_link_from_sheet(post_id):
         creds_json = json.loads(os.environ.get("GOOGLE_CREDS"))
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
         client = gspread.authorize(creds)
+        
+        # O comando .sheet1 lê sempre a primeira aba da esquerda para a direita (a aba "Posts")
         sheet = client.open_by_key(os.environ.get("SHEET_ID")).sheet1
         
         print(f" Procurando ID {post_id} na planilha...", flush=True)
@@ -28,11 +30,43 @@ def get_link_from_sheet(post_id):
         print(f" Erro ao ler planilha (ou Post não cadastrado): {e}", flush=True)
         return None, None
 
+def get_random_reply_from_sheet():
+    try:
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds_json = json.loads(os.environ.get("GOOGLE_CREDS"))
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
+        client = gspread.authorize(creds)
+        
+        # Conecta especificamente na aba secundária chamada "Respostas"
+        sheet = client.open_by_key(os.environ.get("SHEET_ID")).worksheet("Respostas")
+        
+        # Pega todas as frases da Coluna A
+        lista_de_respostas = sheet.col_values(1)
+        
+        # Remove a palavra "Frases" (o título da coluna) da lista do sorteio
+        if lista_de_respostas and lista_de_respostas[0].lower() == "frases":
+            lista_de_respostas.pop(0)
+            
+        # Filtra possíveis linhas em branco deixadas na planilha
+        lista_de_respostas = [frase for frase in lista_de_respostas if frase.strip()]
+        
+        # Escolhe uma frase aleatória
+        if lista_de_respostas:
+            return random.choice(lista_de_respostas)
+        else:
+            return "Oie, @{username}! Te mandei pelo direct! 🧡" # Frase de emergência se a aba estiver vazia
+            
+    except Exception as e:
+        print(f" Erro ao ler a aba de Respostas: {e}", flush=True)
+        return "Oie, @{username}! Te mandei pelo direct! 🧡" # Frase de emergência em caso de erro na API
+
+
 @app.route('/webhook', methods=['GET'])
 def verify():
     if request.args.get("hub.verify_token") == os.environ.get("VERIFY_TOKEN"):
         return request.args.get("hub.challenge")
     return "Erro de validação", 403
+
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -52,10 +86,14 @@ def webhook():
                 if user_name == "casa__curadoria":
                     continue
 
+                # 1. Puxa os dados do Post na aba principal
                 palavra_esperada, resposta = get_link_from_sheet(post_id)
 
+                # 2. Verifica se a palavra da planilha está no comentário
                 if palavra_esperada and palavra_esperada in text:
                     print(f" Gatilho '{palavra_esperada}' detectado de {user_name}. Enviando link...", flush=True)
+                    
+                    # Dispara a DM privada
                     send_instagram_dm(comment_id, resposta) 
                     
                     # Responde o comentário publicamente no post
@@ -83,20 +121,16 @@ def send_instagram_dm(comment_id, message_text):
     response = requests.post(url, json=payload, headers=headers)
     print(f" Resultado da DM: {response.status_code} - {response.text}", flush=True)
 
+
 def reply_to_comment(comment_id, username):
     token = os.environ.get("META_TOKEN") 
     url = f"https://graph.instagram.com/v25.0/{comment_id}/replies"
     
-    # LISTA DE RESPOSTAS PERSONALIZADAS:
-    lista_de_respostas = [
-        f"Oii, @{username}! Já te chamei no direct com o link, verifica se chegou! ✨",
-        f"Oie, @{username}! Tudo bem? Te mandei no direct, veja se chegou certinho",
-        f"Oi, @{username}! Enviei na sua DM ✨",
-        f"Prontinho @{username} 🧡! Veja se chegou certinho na sua DM",
-        f"@{username}, mandei no seu direct! Veja se chegou pra você"
-    ]
+    # Puxa a frase sorteada direto da aba "Respostas"
+    mensagem_bruta = get_random_reply_from_sheet()
     
-    mensagem_sorteada = random.choice(lista_de_respostas)
+    # Substitui a tag pelo nome real do usuário
+    mensagem_final = mensagem_bruta.replace("{username}", username)
     
     headers = {
         "Authorization": f"Bearer {token}",
@@ -104,11 +138,12 @@ def reply_to_comment(comment_id, username):
     }
     
     payload = {
-        "message": mensagem_sorteada
+        "message": mensagem_final
     }
     
     response = requests.post(url, json=payload, headers=headers)
     print(f" Resultado da Resposta no Post: {response.status_code} - {response.text}", flush=True)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
