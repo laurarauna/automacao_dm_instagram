@@ -1,6 +1,6 @@
-# Instagram DM Automation
+# Instagram DM & Comment Automation
 
-This repository contains the source code for a *Server-to-Server* automation developed for the Instagram business account **@casa__curadoria**. The application's goal is to convert public engagement (comments) into private interactions and conversions by automatically sending product links (e.g., Shopee affiliates) via Direct Message (DM) when a follower comments a specific keyword.
+This repository contains the source code for a Server-to-Server automation developed for the Instagram business account @casa__curadoria. The application's goal is to convert public engagement (comments) into private interactions and conversions by automatically sending product links (e.g., Shopee affiliates) via Direct Message (DM), while simultaneously publishing randomized public replies when a follower comments a specific keyword.
 
 Real-time data ingestion pipeline construction consuming the Meta Graph API. Server-to-Server architecture deployed in the cloud (Render).
 
@@ -23,7 +23,9 @@ The entire process is automated and occurs in a matter of seconds:
     * If the event occurred on the correct account (`instagram_business_basic`).
     * If the comment text contains the exact trigger keyword (`instagram_business_manage_comments`).
 4.  **Database Query:** The code connects to a Google Sheets spreadsheet. The spreadsheet works as a control panel containing: `Post Link` | `Keyword` | `Message to send` | `Product Link (Shopee)`.
-5.  **The Action (DM Dispatch):** Once the data matches, the server makes a POST request to the Meta Graph API, sending the message and the link privately to the user's inbox (`instagram_business_manage_messages`).
+5. **The Action (DM Dispatch & Public Reply):** Once the data matches, the server makes two parallel POST requests to the Meta Graph API:
+  - **Private DM:** Uses the comment_id to send the link directly to the user's inbox (complying with Meta's Private Reply policies).
+  - **Public Reply:** Randomly selects a phrase from the spreadsheet (e.g., "Just sent it to your DM, @{username}! ✨") and replies to the user's comment. This mimics human behavior, prevents SPAM flagging, and doubles the post's algorithmic engagement.
 
 ## 🔐 Meta App Permissions
 
@@ -52,4 +54,4 @@ Click the image below to watch the video demonstrating the Server-to-Server arch
 
 ## 📌 Final Remarks
 
-This project automates the delivery of value to followers, reducing friction in the purchasing journey and ensuring the user receives the requested information instantly and securely, respecting the platform's privacy and consent policies.
+This project automates the delivery of value to followers, reducing friction in the purchasing journey and ensuring the user receives the requested information instantly and securely. By implementing randomized public replies and offloading configuration to Google Sheets, the architecture empowers content teams to manage campaigns without touching the codebase, all while respecting the platform's privacy and consent policies.
